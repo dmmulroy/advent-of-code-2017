@@ -1,18 +1,18 @@
 const fs = require('fs');
 const path = require('path');
-
 const input = fs.readFileSync(path.join(__dirname, 'input.txt'), 'utf8');
+
 const sanitizedInput = input.split('\n').map(row => row.split(' '));
 
 class Actor {
   constructor(id, instructions) {
+    console.log('instructions', instructions);
     this.id = id;
     this.instructions = instructions;
     this.mailbox = [];
 
     this.enqueueMailbox = this.enqueueMailbox.bind(this);
     process.on('message', msg => {
-      console.log('here!!');
       if (msg['value']) {
         this.enqueueMailbox(msg['value']);
       } else if (msg['start']) {
@@ -46,6 +46,8 @@ class Actor {
 
       for (let idx = 0; idx < instructions.length; idx++) {
         const [op, registerKey, value] = instructions[idx];
+        console.log('op', op);
+        console.log('instructions[idx]', instructions[idx]);
 
         if (!register[registerKey]) register[registerKey] = 0;
 
@@ -78,6 +80,7 @@ class Actor {
             console.log('Actor', this.id, 'sending', sendValue);
 
             process.send({ id: this.id, value: sendValue });
+            console.log('her!?!?!');
             sendCount++;
             break;
           case 'jgz':
@@ -87,7 +90,7 @@ class Actor {
             register[registerKey] = await this.dequeueMailbox();
             break;
           default:
-            throw new Error('Something went wrong');
+            throw new Error(`Something went wrong: ${op}`);
             break;
         }
       }

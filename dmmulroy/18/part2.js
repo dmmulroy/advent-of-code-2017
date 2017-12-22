@@ -3,6 +3,7 @@ const path = require('path');
 const { fork } = require('child_process');
 
 const input = fs.readFileSync(path.join(__dirname, 'input.txt'), 'utf8');
+
 const sanitizedInput = input.split('\n').map(row => row.split(' '));
 
 const Actor1 = fork('actor.js', [0, sanitizedInput]);
