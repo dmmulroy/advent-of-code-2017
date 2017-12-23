@@ -3,19 +3,14 @@ const path = require('path');
 
 const input = fs.readFileSync(path.join(__dirname, 'input.txt'), 'utf8');
 
-const sanitizedInput = input
+const instructions = input
   .trim()
   .split('\n')
   .map(row => row.split(' '));
 
 class Actor {
-  static getInstructions() {
-    return sanitizedInput;
-  }
-
   constructor(id) {
     this.id = id;
-    this.instructions = Actor.getInstructions();
     this.mailbox = [];
 
     this.enqueueMailbox = this.enqueueMailbox.bind(this);
@@ -39,19 +34,25 @@ class Actor {
   dequeueMailbox() {
     return new Promise((resolve, reject) => {
       setInterval(() => {
+        console.log(
+          'Checking mailmox for Actor',
+          this.id,
+          'length:',
+          this.mailbox.length
+        );
         if (this.mailbox.length > 0) resolve(this.mailbox.shift());
-      }, 100);
+      }, 1);
     });
   }
 
   async processInstructions() {
     try {
       let sendCount = 0;
-      let { instructions } = this;
       let register = { p: this.id };
       let recoveredFrequency = 0;
 
       for (let idx = 0; idx < instructions.length; idx++) {
+        if (this.id === 1) console.log('idx', idx);
         const [op, registerKey, value] = instructions[idx];
 
         if (!register[registerKey]) register[registerKey] = 0;
@@ -82,8 +83,7 @@ class Actor {
               ? register[registerKey]
               : Number(value);
 
-            console.log('Actor', this.id, 'sending', sendValue);
-
+            console.log('Actor', this.id, 'sending value:', sendValue);
             process.send({ id: this.id, value: sendValue });
             sendCount++;
             break;
@@ -91,8 +91,9 @@ class Actor {
             if (register[registerKey] > 0) idx += Number(value) - 1;
             break;
           case 'rcv':
-            console.log('Actor', this.id, 'receiving');
+            console.log('Actor:', this.id, 'rcv - 0');
             register[registerKey] = await this.dequeueMailbox();
+            console.log('Actor:', this.id, 'rcv - 1');
             break;
           default:
             throw new Error(`Something went wrong: ${op}`);
@@ -100,10 +101,8 @@ class Actor {
         }
       }
       process.send({ id: this.id, sendCount });
-    } catch (err) {
-      console.log('Actor', this.id, 'Error:', err);
-    }
+    } catch (err) {}
   }
 }
 
-new Actor(process.argv[2]);
+new Actor(Number(process.argv[2]));

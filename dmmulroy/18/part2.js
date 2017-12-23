@@ -9,8 +9,8 @@ const sanitizedInput = input
   .split('\n')
   .map(row => row.split(' '));
 
-const Actor0 = fork('actor.js', [0, sanitizedInput]);
-const Actor1 = fork('actor.js', [1, sanitizedInput]);
+const Actor0 = fork('actor.js', [0]);
+const Actor1 = fork('actor.js', [1]);
 
 Actor0.on('message', msg => {
   if (msg['sendCount']) {
@@ -22,7 +22,8 @@ Actor0.on('message', msg => {
 });
 
 Actor1.on('message', msg => {
-  Actor1.send(msg);
+  console.log(msg);
+  Actor0.send(msg);
 });
 
 Actor0.send({ start: true });
