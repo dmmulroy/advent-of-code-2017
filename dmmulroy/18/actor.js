@@ -1,14 +1,21 @@
 const fs = require('fs');
 const path = require('path');
+
 const input = fs.readFileSync(path.join(__dirname, 'input.txt'), 'utf8');
 
-const sanitizedInput = input.split('\n').map(row => row.split(' '));
+const sanitizedInput = input
+  .trim()
+  .split('\n')
+  .map(row => row.split(' '));
 
 class Actor {
-  constructor(id, instructions) {
-    console.log('instructions', instructions);
+  static getInstructions() {
+    return sanitizedInput;
+  }
+
+  constructor(id) {
     this.id = id;
-    this.instructions = instructions;
+    this.instructions = Actor.getInstructions();
     this.mailbox = [];
 
     this.enqueueMailbox = this.enqueueMailbox.bind(this);
@@ -46,8 +53,6 @@ class Actor {
 
       for (let idx = 0; idx < instructions.length; idx++) {
         const [op, registerKey, value] = instructions[idx];
-        console.log('op', op);
-        console.log('instructions[idx]', instructions[idx]);
 
         if (!register[registerKey]) register[registerKey] = 0;
 
@@ -80,13 +85,13 @@ class Actor {
             console.log('Actor', this.id, 'sending', sendValue);
 
             process.send({ id: this.id, value: sendValue });
-            console.log('her!?!?!');
             sendCount++;
             break;
           case 'jgz':
             if (register[registerKey] > 0) idx += Number(value) - 1;
             break;
           case 'rcv':
+            console.log('Actor', this.id, 'receiving');
             register[registerKey] = await this.dequeueMailbox();
             break;
           default:
@@ -101,4 +106,4 @@ class Actor {
   }
 }
 
-new Actor(process.argv[2], process.argv[3]);
+new Actor(process.argv[2]);

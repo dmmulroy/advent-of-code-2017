@@ -4,25 +4,26 @@ const { fork } = require('child_process');
 
 const input = fs.readFileSync(path.join(__dirname, 'input.txt'), 'utf8');
 
-const sanitizedInput = input.split('\n').map(row => row.split(' '));
+const sanitizedInput = input
+  .trim()
+  .split('\n')
+  .map(row => row.split(' '));
 
-const Actor1 = fork('actor.js', [0, sanitizedInput]);
-const Actor2 = fork('actor.js', [1, sanitizedInput]);
+const Actor0 = fork('actor.js', [0, sanitizedInput]);
+const Actor1 = fork('actor.js', [1, sanitizedInput]);
 
-Actor1.on('message', msg => {
-  console.log('actor1 msg', msg);
+Actor0.on('message', msg => {
   if (msg['sendCount']) {
     console.log('output:', msg['sendCount']);
     process.exit();
   } else {
-    Actor2.send(msg);
+    Actor1.send(msg);
   }
 });
 
-Actor2.on('message', msg => {
-  console.log('actor2 msg', msg);
-  Actor2.send(msg);
+Actor1.on('message', msg => {
+  Actor1.send(msg);
 });
 
+Actor0.send({ start: true });
 Actor1.send({ start: true });
-Actor2.send({ start: true });
